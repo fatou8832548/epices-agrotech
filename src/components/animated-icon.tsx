@@ -1,6 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Image } from 'expo-image';
+import { usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -11,6 +13,26 @@ const DURATION = 600;
 export function AnimatedSplashOverlay() {
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // When we're on the index route (custom splash), hide the animated overlay
+    // and the native splash so the index page's logo is visible.
+    if (pathname === '/' || pathname === '/index') {
+      setVisible(false);
+      SplashScreen.hideAsync().catch(() => {});
+      return;
+    }
+
+    AsyncStorage.getItem('hasSeenSplash_v1')
+      .then((v) => {
+        if (v === 'true') {
+          setVisible(false);
+          SplashScreen.hideAsync().catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, [pathname]);
 
   if (!visible) return null;
 
