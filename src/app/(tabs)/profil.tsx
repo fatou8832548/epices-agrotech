@@ -4,11 +4,11 @@ import { GhostButton } from '@/components/ui/ghost-button';
 import { formations } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import {
-  computeProjectTotals,
-  formatAmount,
-  PROJECTS_STORAGE_PREFIX,
-  SavedProject,
-  slugFromStorageKey,
+    computeProjectTotals,
+    formatAmount,
+    PROJECTS_STORAGE_PREFIX,
+    SavedProject,
+    slugFromStorageKey,
 } from '@/utils/projects-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -28,6 +28,7 @@ type SavedProjectEntry = {
   productName: string;
   coutProduction: number;
   prixVenteRecommande: number;
+  quantiteVendue?: string;
 };
 
 const MENU_ITEMS: MenuItem[] = [
@@ -62,6 +63,7 @@ export default function ProfilScreen() {
                 productName: formation?.subtitle ?? slug,
                 coutProduction: totals.coutProduction,
                 prixVenteRecommande: totals.prixVenteRecommande,
+                quantiteVendue: project.quantiteVendue,
               };
             })
             .filter((entry): entry is SavedProjectEntry => entry !== null);
@@ -104,6 +106,9 @@ export default function ProfilScreen() {
                     <ThemedText style={styles.projectMeta}>
                       Coût: {formatAmount(project.coutProduction)} · Prix de vente: {formatAmount(project.prixVenteRecommande)}
                     </ThemedText>
+                    {project.quantiteVendue ? (
+                      <ThemedText style={styles.projectMeta}>Quantité vendue: {project.quantiteVendue}</ThemedText>
+                    ) : null}
                   </View>
                 </View>
               ))}

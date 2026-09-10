@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { PrimaryButton } from '@/components/ui/primary-button';
-import { formations, QuizQuestion } from '@/constants/formations';
+import { FormationDocument, formations, QuizQuestion } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { Asset } from 'expo-asset';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -14,10 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TABS = ['Modules', 'Vidéo', 'Documents', 'Quiz'] as const;
 
-async function openDocument(asset: number) {
+async function openDocument(doc: FormationDocument, router: ReturnType<typeof useRouter>) {
   try {
-    const [downloaded] = await Asset.loadAsync(asset);
+    const [downloaded] = await Asset.loadAsync(doc.asset);
     const uri = downloaded.localUri ?? downloaded.uri;
+    if (doc.fileType === 'PDF') {
+      router.push({ pathname: '/formations/document-viewer', params: { uri, title: doc.title } });
+      return;
+    }
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(uri);
     } else {
@@ -128,8 +132,15 @@ export default function FormationDetailScreen() {
   const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Modules');
+  const [activeQuizModuleIndex, setActiveQuizModuleIndex] = useState<number | null>(null);
+  const [expandedModuleIndex, setExpandedModuleIndex] = useState<number | null>(null);
 
   const formation = formations.find((f) => f.slug === slug) ?? formations[0];
+
+  const handleTabChange = (tab: (typeof TABS)[number]) => {
+    setActiveTab(tab);
+    setActiveQuizModuleIndex(null);
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -150,7 +161,7 @@ export default function FormationDetailScreen() {
 
         <View style={styles.tabsRow}>
           {TABS.map((tab) => (
-            <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)} style={styles.tabItem}>
+            <TouchableOpacity key={tab} onPress={() => handleTabChange(tab)} style={styles.tabItem}>
               <ThemedText style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>{tab}</ThemedText>
               {activeTab === tab ? <View style={styles.tabIndicator} /> : null}
             </TouchableOpacity>
@@ -161,12 +172,47 @@ export default function FormationDetailScreen() {
           {activeTab === 'Modules' ? (
             <View style={styles.modulesList}>
               {formation.modules.map((module, index) => (
-                <View key={module.title} style={styles.moduleRow}>
-                  <View style={styles.moduleNumber}>
-                    <ThemedText style={styles.moduleNumberText}>{index + 1}</ThemedText>
-                  </View>
-                  <ThemedText style={styles.moduleTitle}>{module.title}</ThemedText>
-                  <ThemedText style={styles.moduleDuration}>{module.duration}</ThemedText>
+                <View key={module.title} style={styles.moduleCard}>
+                  <TouchableOpacity
+                    style={styles.moduleRow}
+                    activeOpacity={module.content ? 0.7 : 1}
+                    onPress={() => module.content && setExpandedModuleIndex(expandedModuleIndex === index ? null : index)}
+                  >
+                    <View style={styles.moduleNumber}>
+                      <ThemedText style={styles.moduleNumberText}>{index + 1}</ThemedText>
+                    </View>
+                    <ThemedText style={styles.moduleTitle}>{module.title}</ThemedText>
+                    <ThemedText style={styles.moduleDuration}>{module.duration}</ThemedText>
+                    {module.document ? (
+                      <TouchableOpacity
+                        onPress={() => openDocument(module.document!, router)}
+                        accessibilityLabel={module.document.title}
+                      >
+                        <SymbolView tintColor="#1b8a2a" name={{ ios: 'doc.text.fill', android: 'description', web: 'file-text' }} size={18} />
+                      </TouchableOpacity>
+                    ) : null}
+                    {module.content ? (
+                      <SymbolView
+                        tintColor="#999"
+                        name={{
+                          ios: expandedModuleIndex === index ? 'chevron.up' : 'chevron.down',
+                          android: expandedModuleIndex === index ? 'expand_less' : 'expand_more',
+                          web: expandedModuleIndex === index ? 'chevron-up' : 'chevron-down',
+                        }}
+                        size={16}
+                      />
+                    ) : null}
+                  </TouchableOpacity>
+
+                  {module.content && expandedModuleIndex === index ? (
+                    <View style={styles.moduleContent}>
+                      {module.content.map((paragraph, paragraphIndex) => (
+                        <ThemedText key={paragraphIndex} style={styles.moduleContentParagraph}>
+                          {paragraph}
+                        </ThemedText>
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
               ))}
             </View>
@@ -174,7 +220,7 @@ export default function FormationDetailScreen() {
             <View style={styles.modulesList}>
               {formation.documents.length ? (
                 formation.documents.map((doc) => (
-                  <TouchableOpacity key={doc.title} style={styles.documentRow} onPress={() => openDocument(doc.asset)}>
+                  <TouchableOpacity key={doc.title} style={styles.documentRow} onPress={() => openDocument(doc, router)}>
                     <View style={styles.documentIcon}>
                       <SymbolView tintColor="#1b8a2a" name={{ ios: 'doc.text.fill', android: 'description', web: 'file-text' }} size={20} />
                     </View>
@@ -190,7 +236,34 @@ export default function FormationDetailScreen() {
               )}
             </View>
           ) : activeTab === 'Quiz' ? (
-            <QuizView questions={formation.quiz} />
+            activeQuizModuleIndex !== null ? (
+              <>
+                <TouchableOpacity style={styles.quizBackRow} onPress={() => setActiveQuizModuleIndex(null)}>
+                  <SymbolView tintColor="#1b8a2a" name={{ ios: 'chevron.left', android: 'arrow_back', web: 'chevron-left' }} size={16} />
+                  <ThemedText style={styles.quizBackLabel}>{formation.modules[activeQuizModuleIndex].title}</ThemedText>
+                </TouchableOpacity>
+                <QuizView questions={formation.modules[activeQuizModuleIndex].quiz ?? []} />
+              </>
+            ) : (
+              <View style={styles.modulesList}>
+                {formation.modules.map((module, index) => (
+                  <TouchableOpacity
+                    key={module.title}
+                    style={[styles.moduleRow, styles.moduleCard]}
+                    disabled={!module.quiz?.length}
+                    onPress={() => setActiveQuizModuleIndex(index)}
+                  >
+                    <View style={styles.moduleNumber}>
+                      <ThemedText style={styles.moduleNumberText}>{index + 1}</ThemedText>
+                    </View>
+                    <ThemedText style={styles.moduleTitle}>{module.title}</ThemedText>
+                    <ThemedText style={styles.moduleDuration}>
+                      {module.quiz?.length ? `${module.quiz.length} questions` : 'Aucun quiz'}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )
           ) : activeTab === 'Vidéo' ? (
             <VideoTab video={formation.video} />
           ) : (
@@ -241,15 +314,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: { paddingTop: Spacing.four, paddingBottom: 120 },
   modulesList: { width: '100%' },
+  moduleCard: { marginBottom: Spacing.two },
   moduleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#f5f6f8',
     borderRadius: 14,
     padding: Spacing.three,
-    marginBottom: Spacing.two,
     gap: Spacing.three,
   },
+  moduleContent: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+    borderRadius: 14,
+    padding: Spacing.three,
+    marginTop: Spacing.one,
+    gap: Spacing.two,
+  },
+  moduleContentParagraph: { fontSize: 14, color: '#333', lineHeight: 20 },
   moduleNumber: {
     width: 28,
     height: 28,
@@ -282,6 +365,8 @@ const styles = StyleSheet.create({
   emptyText: { color: '#666', textAlign: 'center', marginTop: Spacing.four },
   startButton: { marginTop: Spacing.four },
   video: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#000' },
+  quizBackRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, marginBottom: Spacing.three },
+  quizBackLabel: { fontSize: 15, fontWeight: '700', color: '#1b8a2a' },
   quizProgress: { fontSize: 13, color: '#666', marginBottom: Spacing.one },
   quizQuestion: { fontSize: 17, fontWeight: '700', color: '#111', marginBottom: Spacing.three },
   quizOption: {

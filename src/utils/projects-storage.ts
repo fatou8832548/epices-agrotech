@@ -9,6 +9,7 @@ export type SavedProject = {
   intrants: Intrant[];
   quantiteObtenue: string;
   marge: string;
+  quantiteVendue?: string;
 };
 
 export const PROJECTS_STORAGE_PREFIX = '@epices/mes-projets/';

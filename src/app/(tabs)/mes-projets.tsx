@@ -4,7 +4,7 @@ import { GhostButton } from '@/components/ui/ghost-button';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { formations } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { computeProjectTotals, formatAmount, Intrant, projectStorageKey, toNumber } from '@/utils/projects-storage';
+import { computeProjectTotals, formatAmount, Intrant, projectStorageKey, SavedProject, toNumber } from '@/utils/projects-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useMemo, useState } from 'react';
@@ -24,6 +24,8 @@ export default function MesProjetsScreen() {
   const [intrants, setIntrants] = useState<Intrant[]>([createIntrant()]);
   const [quantiteObtenue, setQuantiteObtenue] = useState('');
   const [marge, setMarge] = useState('1.5');
+  const [quantiteVendue, setQuantiteVendue] = useState('');
+  const [showQuantiteVendue, setShowQuantiteVendue] = useState(false);
 
   const updateIntrant = (id: string, patch: Partial<Intrant>) => {
     setIntrants((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
@@ -35,16 +37,19 @@ export default function MesProjetsScreen() {
   useEffect(() => {
     AsyncStorage.getItem(projectStorageKey(selectedSlug))
       .then((raw) => {
+        setShowQuantiteVendue(false);
         if (!raw) {
           setIntrants([createIntrant()]);
           setQuantiteObtenue('');
           setMarge('1.5');
+          setQuantiteVendue('');
           return;
         }
-        const saved = JSON.parse(raw) as { intrants: Intrant[]; quantiteObtenue: string; marge: string };
+        const saved = JSON.parse(raw) as SavedProject;
         setIntrants(saved.intrants.length ? saved.intrants : [createIntrant()]);
         setQuantiteObtenue(saved.quantiteObtenue ?? '');
         setMarge(saved.marge ?? '1.5');
+        setQuantiteVendue(saved.quantiteVendue ?? '');
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -52,8 +57,28 @@ export default function MesProjetsScreen() {
 
   const handleSave = async () => {
     try {
-      await AsyncStorage.setItem(projectStorageKey(selectedSlug), JSON.stringify({ intrants, quantiteObtenue, marge }));
+      await AsyncStorage.setItem(projectStorageKey(selectedSlug), JSON.stringify({ intrants, quantiteObtenue, marge, quantiteVendue }));
+      setShowQuantiteVendue(true);
+      setIntrants([createIntrant()]);
       Alert.alert('Enregistré', 'Les coûts de ce produit ont été sauvegardés. Retrouve-les dans ton Profil.');
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      Alert.alert('Erreur', `Impossible d'enregistrer : ${message}`);
+    }
+  };
+
+  const handleSaveQuantiteVendue = async () => {
+    try {
+      await AsyncStorage.setItem(
+        projectStorageKey(selectedSlug),
+        JSON.stringify({ intrants, quantiteObtenue, marge, quantiteVendue })
+      );
+      Alert.alert('Enregistré', 'La quantité vendue a été sauvegardée.');
+      setIntrants([createIntrant()]);
+      setQuantiteObtenue('');
+      setMarge('1.5');
+      setQuantiteVendue('');
+      setShowQuantiteVendue(false);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       Alert.alert('Erreur', `Impossible d'enregistrer : ${message}`);
@@ -196,6 +221,28 @@ export default function MesProjetsScreen() {
                 </View>
 
                 <PrimaryButton title="Enregistrer" onPress={handleSave} style={styles.saveButton} />
+
+                {showQuantiteVendue ? (
+                  <View style={styles.quantiteVendueCard}>
+                    <ThemedText style={styles.sectionTitle}>Quantité vendue</ThemedText>
+                    <View style={styles.fieldColumn}>
+                      <ThemedText style={styles.fieldLabel}>Quantité vendue</ThemedText>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="0"
+                        placeholderTextColor="#999"
+                        keyboardType="decimal-pad"
+                        value={quantiteVendue}
+                        onChangeText={setQuantiteVendue}
+                      />
+                    </View>
+                    <PrimaryButton
+                      title="Valider la quantité vendue"
+                      onPress={handleSaveQuantiteVendue}
+                      style={styles.saveButton}
+                    />
+                  </View>
+                ) : null}
               </>
             ) : (
               <>
@@ -315,6 +362,12 @@ const styles = StyleSheet.create({
   resultLabel: { fontSize: 14, color: '#333' },
   resultValue: { fontSize: 18, fontWeight: '700', color: '#1b8a2a' },
   saveButton: { marginTop: Spacing.four },
+  quantiteVendueCard: {
+    marginTop: Spacing.four,
+    backgroundColor: '#f5f6f8',
+    borderRadius: 14,
+    padding: Spacing.three,
+  },
   packagingCard: {
     flexDirection: 'row',
     backgroundColor: '#f5f6f8',
