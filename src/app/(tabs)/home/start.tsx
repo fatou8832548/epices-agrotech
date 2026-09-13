@@ -33,6 +33,9 @@ async function detectProduct(imageUri: string, apiUrl: string) {
   });
 
   if (result.status < 200 || result.status >= 300) {
+    if (result.status === 429) {
+      throw new Error("Quota quotidien de l'IA atteint. Réessaie plus tard ou demain.");
+    }
     throw new Error(`Détection IA indisponible (${result.status})`);
   }
 

@@ -87,7 +87,15 @@ app.post('/scan', upload.single('file'), async (req, res) => {
     return res.json({ name: firstLine, scientificName: '', confidence: 0.6, keyInfo: [], raw: text });
   } catch (err) {
     console.error('scan error', err);
-    return res.status(500).json({ error: 'scan_failed', detail: err?.message });
+    const message = err?.message || '';
+    const isQuotaError = err?.status === 429 || /429|quota/i.test(message);
+    if (isQuotaError) {
+      return res.status(429).json({
+        error: 'quota_exceeded',
+        detail: "Quota quotidien de l'API IA atteint. Réessaie plus tard ou demain.",
+      });
+    }
+    return res.status(500).json({ error: 'scan_failed', detail: message });
   }
 });
 

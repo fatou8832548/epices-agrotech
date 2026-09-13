@@ -35,6 +35,11 @@ const PHOTO_MANGUE_SECHEE = require('../../assets/images/products/mangue-sechee.
 const PHOTO_PUREE_DE_MANGUE = require('../../assets/images/products/puree-de-mangue.png');
 const PHOTO_NECTAR_DE_MANGUE = require('../../assets/images/products/nectar-de-mangue.png');
 const PHOTO_POUDRE_DE_MANGUE = require('../../assets/images/products/poudre-de-mangue.png');
+const PHOTO_BANANE_SECHEE = require('../../assets/images/products/banane-sechee.jpg');
+const PHOTO_FARINE_DE_BANANE = require('../../assets/images/products/farine-de-banane.jpg');
+const PHOTO_CHIPS_DE_BANANE = require('../../assets/images/products/chips-de-banane.jpg');
+const PHOTO_CONFITURE_DE_BANANE = require('../../assets/images/products/confiture-de-banane.jpg');
+const PHOTO_PUREE_DE_BANANE = require('../../assets/images/products/puree-de-banane.jpg');
 
 const jusDeMangueProcess: FruitProductProcess = {
   fabrication: [
@@ -534,11 +539,11 @@ const catalog: FruitProducts[] = [
   {
     fruit: 'Banane',
     products: [
-      { name: 'Banane séchée', icon: ICON_DRIED, process: driedProcess('bananes') },
-      { name: 'Farine de banane', icon: ICON_POWDER, process: flourProcess('bananes') },
-      { name: 'Chips de banane', icon: ICON_DRIED, process: chipsProcess('bananes') },
-      { name: 'Confiture de banane', icon: ICON_JAM, process: jamProcess('bananes') },
-      { name: 'Purée de banane', icon: ICON_PUREE, process: jamProcess('bananes') },
+      { name: 'Banane séchée', icon: ICON_DRIED, photo: PHOTO_BANANE_SECHEE, process: driedProcess('bananes') },
+      { name: 'Farine de banane', icon: ICON_POWDER, photo: PHOTO_FARINE_DE_BANANE, process: flourProcess('bananes') },
+      { name: 'Chips de banane', icon: ICON_DRIED, photo: PHOTO_CHIPS_DE_BANANE, process: chipsProcess('bananes') },
+      { name: 'Confiture de banane', icon: ICON_JAM, photo: PHOTO_CONFITURE_DE_BANANE, process: jamProcess('bananes') },
+      { name: 'Purée de banane', icon: ICON_PUREE, photo: PHOTO_PUREE_DE_BANANE, process: jamProcess('bananes') },
     ],
   },
   {
