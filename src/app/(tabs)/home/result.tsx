@@ -77,7 +77,7 @@ export default function ResultScreen() {
 
           <PrimaryButton
             title="Voir les produits possibles"
-            onPress={() => {}}
+            onPress={() => router.push({ pathname: '/home/products', params: { name } })}
             style={styles.primaryButton}
           />
         </ScrollView>

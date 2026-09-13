@@ -30,7 +30,10 @@ if (!GEMINI_KEY) {
   console.warn('WARNING: GEMINI_API_KEY not set. The server will still run but Gemini calls will fail.');
 }
 const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+// "gemini-2.5-flash" (and the "latest" alias, which still resolves to it) is
+// no longer available to this API key; Google's own error message points to
+// this replacement model.
+const model = genAI.getGenerativeModel({ model: 'gemini-3.6-flash' });
 
 app.get('/', (req, res) => res.json({ ok: true, info: 'scan server' }));
 
@@ -88,6 +91,6 @@ app.post('/scan', upload.single('file'), async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5050;
 app.listen(port, () => console.log('scan server listening on', port));
 

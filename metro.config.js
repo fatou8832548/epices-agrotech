@@ -13,7 +13,7 @@ const existingBlockList = config.resolver.blockList
     : [config.resolver.blockList]
   : [];
 
-config.resolver.blockList = [...existingBlockList, /server\/.*$/];
+config.resolver.blockList = [...existingBlockList, /[\\/]server[\\/].*$/];
 
 // Allow bundling course documents (e.g. .pptx) as static assets.
 config.resolver.assetExts = [...config.resolver.assetExts, 'pptx', 'docx', 'pdf'];

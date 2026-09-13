@@ -6,6 +6,8 @@ export default function HomeStackLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="start" />
       <Stack.Screen name="result" />
+      <Stack.Screen name="products" />
+      <Stack.Screen name="product-detail" />
     </Stack>
   );
 }
