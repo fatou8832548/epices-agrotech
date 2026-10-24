@@ -10,7 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { GhostButton } from '@/components/ui/ghost-button';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import iconImg from '../../../../assets/images/favicon.png';
+import iconImg from '../../../../assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg';
 import heroImg from '../../../../assets/images/hero_fruits.png';
 
 export default function HomeScreen() {

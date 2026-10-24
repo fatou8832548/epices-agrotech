@@ -3,32 +3,29 @@ import { ThemedView } from '@/components/themed-view';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { FormationDocument, formations, QuizQuestion } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { FORMATION_ACCESS_PRICE, isFormationUnlocked, unlockFormation } from '@/utils/formation-access';
+import {
+  createPaymentCheckout,
+  FORMATION_ACCESS_PRICE,
+  getPaymentStatus,
+  isFormationUnlocked,
+  PaymentMethod,
+  unlockFormation,
+} from '@/utils/formation-access';
 import { Asset } from 'expo-asset';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { SymbolView } from 'expo-symbols';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TABS = ['Modules', 'Vidéo', 'Documents', 'Quiz'] as const;
-const WAVE_DEEP_LINK = 'wave://';
-const WAVE_WEB_URL = 'https://www.waveapps.com/';
-
-async function openWavePayment() {
-  try {
-    const supported = await Linking.canOpenURL(WAVE_DEEP_LINK);
-    if (supported) {
-      await Linking.openURL(WAVE_DEEP_LINK);
-      return;
-    }
-    await Linking.openURL(WAVE_WEB_URL);
-  } catch {
-    await Linking.openURL(WAVE_WEB_URL);
-  }
-}
+const PAYMENT_METHODS: { id: PaymentMethod; title: string; image: number }[] = [
+  { id: 'wave', title: 'Wave', image: require('../../../../assets/images/wave.png') },
+  { id: 'orange_money', title: 'Orange Money', image: require('../../../../assets/images/orange money.png') },
+  { id: 'paypal', title: 'PayPal', image: require('../../../../assets/images/Paypal_2014_logo.png') },
+];
 
 async function openDocument(doc: FormationDocument, router: ReturnType<typeof useRouter>) {
   try {
@@ -152,6 +149,10 @@ export default function FormationDetailScreen() {
   const [expandedModuleIndex, setExpandedModuleIndex] = useState<number | null>(null);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wave');
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const formation = formations.find((f) => f.slug === slug) ?? formations[0];
 
@@ -176,11 +177,45 @@ export default function FormationDetailScreen() {
   };
 
   const handlePayment = async () => {
-    await openWavePayment();
-    Alert.alert(
-      'Paiement Wave',
-      'L’application Wave a été ouverte. Effectuez le paiement puis revenez dans l’application pour reprendre votre cours.',
-    );
+    setPaymentLoading(true);
+    try {
+      const checkout = checkoutUrl && paymentId
+        ? { checkoutUrl, paymentId }
+        : await createPaymentCheckout(String(slug), selectedPaymentMethod);
+
+      setCheckoutUrl(checkout.checkoutUrl);
+      setPaymentId(checkout.paymentId);
+      await Linking.openURL(checkout.checkoutUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de démarrer le paiement.';
+      Alert.alert('Paiement indisponible', message);
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    if (!paymentId) return;
+    setPaymentLoading(true);
+    try {
+      const status = await getPaymentStatus(paymentId);
+      if (status === 'paid') {
+        await unlockFormation(String(slug));
+        setIsUnlocked(true);
+        Alert.alert('Paiement confirmé', 'Votre accès à la formation est activé.');
+      } else if (status === 'pending') {
+        Alert.alert('Paiement en attente', 'Le paiement n’est pas encore confirmé. Réessayez dans quelques instants.');
+      } else {
+        setPaymentId(null);
+        setCheckoutUrl(null);
+        Alert.alert('Paiement non confirmé', 'La transaction a échoué ou a été annulée. Vous pouvez réessayer.');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de vérifier le paiement.';
+      Alert.alert('Vérification impossible', message);
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   if (checkingAccess) {
@@ -196,18 +231,39 @@ export default function FormationDetailScreen() {
               <SymbolView tintColor="#1b8a2a" name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={28} />
             </View>
             <ThemedText style={styles.lockTitle}>Accès payant</ThemedText>
-            <ThemedText style={styles.lockText}>Cette formation est réservée aux utilisateurs ayant payé leur accès via Wave.</ThemedText>
+            <ThemedText style={styles.lockText}>Choisissez un moyen de paiement. Les modules seront accessibles après confirmation.</ThemedText>
             <ThemedText style={styles.lockPrice}>{FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA</ThemedText>
 
-            <TouchableOpacity onPress={handlePayment} activeOpacity={0.9} style={styles.wavePayButton}>
-              <View style={styles.waveLogoWrap}>
-                <View style={styles.waveLogoBadge}>
-                  <ThemedText style={styles.waveLogoGlyph}>◉</ThemedText>
-                </View>
-                <ThemedText style={styles.waveLogoWord}>wave</ThemedText>
-              </View>
-              <ThemedText style={styles.waveButtonText}>Payer avec Wave</ThemedText>
-            </TouchableOpacity>
+            <View style={styles.paymentMethods}>
+              {PAYMENT_METHODS.map((method) => {
+                const selected = selectedPaymentMethod === method.id;
+                return (
+                  <TouchableOpacity
+                    key={method.id}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    onPress={() => setSelectedPaymentMethod(method.id)}
+                    style={[styles.paymentMethod, selected && styles.paymentMethodSelected]}
+                  >
+                    <Image source={method.image} style={styles.paymentLogo} resizeMode="contain" accessibilityLabel={`${method.title} logo`} />
+                    <ThemedText style={styles.paymentMethodLabel}>{method.title}</ThemedText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <PrimaryButton
+              title={paymentLoading ? 'Veuillez patienter...' : `Continuer avec ${PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.title}`}
+              onPress={handlePayment}
+              disabled={paymentLoading}
+              style={styles.payButton}
+            />
+
+            {paymentId ? (
+              <TouchableOpacity onPress={handleVerifyPayment} disabled={paymentLoading} style={styles.verifyPaymentButton}>
+                <ThemedText style={styles.backLinkText}>J’ai payé, vérifier le paiement</ThemedText>
+              </TouchableOpacity>
+            ) : null}
 
             <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
               <ThemedText style={styles.backLinkText}>Retour aux formations</ThemedText>
@@ -471,48 +527,47 @@ const styles = StyleSheet.create({
   lockTitle: { fontSize: 24, fontWeight: '800', marginBottom: Spacing.two, color: '#111' },
   lockText: { fontSize: 15, color: '#555', textAlign: 'center', lineHeight: 22, marginBottom: Spacing.two },
   lockPrice: { fontSize: 28, fontWeight: '800', color: '#1b8a2a', marginBottom: Spacing.three },
-  wavePayButton: {
+  paymentMethods: {
     width: '100%',
-    maxWidth: 360,
-    backgroundColor: '#000000',
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: Spacing.three,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  waveLogoWrap: {
+    maxWidth: 380,
     flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.three,
+  },
+  paymentMethod: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 84,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    borderRadius: 12,
+    paddingHorizontal: 5,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+  },
+  paymentMethodSelected: {
+    borderColor: '#1b8a2a',
+    backgroundColor: '#f3faf4',
+  },
+  paymentLogo: {
+    width: 64,
+    height: 42,
     marginBottom: 6,
   },
-  waveLogoBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  waveLogoGlyph: {
-    color: '#000000',
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  waveLogoWord: {
-    color: '#ffffff',
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -1,
-  },
-  waveButtonText: {
-    color: '#ffffff',
-    fontSize: 15,
+  paymentMethodLabel: {
+    color: '#222222',
+    fontSize: 11,
     fontWeight: '700',
+    textAlign: 'center',
   },
+  payButton: {
+    width: '100%',
+    maxWidth: 380,
+    marginBottom: Spacing.three,
+  },
+  verifyPaymentButton: { marginBottom: Spacing.two, padding: Spacing.two },
   backLink: { marginTop: Spacing.one },
   backLinkText: { color: '#1b8a2a', fontSize: 14, fontWeight: '700' },
   video: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#000' },

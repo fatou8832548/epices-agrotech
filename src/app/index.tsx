@@ -8,7 +8,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedView } from '@/components/themed-view';
-import iconImg from '../../assets/images/favicon.png';
+import iconImg from '../../assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg';
 
 export default function Splash() {
   const router = useRouter();

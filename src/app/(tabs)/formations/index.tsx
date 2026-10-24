@@ -1,13 +1,11 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { formations } from '@/constants/formations';
-import { FORMATION_ACCESS_PRICE, getUnlockedFormations, isFormationUnlocked, unlockFormation } from '@/utils/formation-access';
+import { FORMATION_ACCESS_PRICE, getUnlockedFormations } from '@/utils/formation-access';
 import { useRouter } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
-
-const PAYMENT_METHOD = 'Wave';
 
 const FRUIT_ICONS: Record<string, string> = {
   Mangue: '🥭',
@@ -35,36 +33,12 @@ export default function FormationsScreen() {
     getUnlockedFormations().then(setUnlockedSlugs);
   }, []);
 
-  const handleFormationPress = async (slug: string) => {
-    const hasAccess = await isFormationUnlocked(slug);
-    if (hasAccess) {
-      router.push(`/formations/${slug}`);
-      return;
-    }
-
-    Alert.alert(
-      'Paiement Wave requis',
-      `Cette formation coûte ${FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA. Payer via ${PAYMENT_METHOD} pour débloquer l’accès ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: `Payer ${FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA via ${PAYMENT_METHOD}`,
-          onPress: async () => {
-            await unlockFormation(slug);
-            setUnlockedSlugs((current) => (current.includes(slug) ? current : [...current, slug]));
-            router.push(`/formations/${slug}`);
-          },
-        },
-      ],
-    );
-  };
-
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <ThemedText style={styles.title}>Nos formations</ThemedText>
-          <ThemedText style={styles.subtitle}>Chaque formation est payante avant l’accès aux modules. Paiement via Wave.</ThemedText>
+          <ThemedText style={styles.subtitle}>Choisissez une formation, puis votre mode de paiement. Accès après confirmation du paiement.</ThemedText>
 
           <View style={styles.grid}>
             {formations.map((formation) => {
@@ -75,7 +49,7 @@ export default function FormationsScreen() {
                 <TouchableOpacity
                   key={formation.slug}
                   activeOpacity={0.88}
-                  onPress={() => handleFormationPress(formation.slug)}
+                  onPress={() => router.push(`/formations/${formation.slug}`)}
                   style={[styles.card, { backgroundColor: accent.bg, borderColor: accent.soft }]}
                 >
                   <View style={[styles.emojiWrap, { backgroundColor: accent.soft }]}>
@@ -85,7 +59,8 @@ export default function FormationsScreen() {
                   <ThemedText style={[styles.cardTitle, { color: accent.text }]}>{formation.subtitle}</ThemedText>
                   <ThemedText style={styles.cardMeta}>{formation.modules.length} modules</ThemedText>
 
-                  <View style={[styles.inlineBadge, { backgroundColor: accent.soft }]}> 
+                  <View style={[styles.inlineBadge, { backgroundColor: accent.soft }]}
+                  >
                     <ThemedText style={[styles.inlineBadgeText, { color: accent.text }]}>
                       {unlocked ? 'Accès ouvert' : `${FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA`}
                     </ThemedText>

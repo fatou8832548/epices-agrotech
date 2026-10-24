@@ -4,27 +4,25 @@
     "slug": "epices-agrotech",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg",
     "scheme": "epicesagrotech",
     "userInterfaceStyle": "automatic",
     "updates": {
       "enabled": false
     },
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg"
     },
     "plugins": [
       "expo-router",

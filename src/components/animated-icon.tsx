@@ -55,7 +55,7 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
+  const image = <Image style={styles.image} source={require('@/assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg')} />;
 
   return animate ? (
     <Animated.View
@@ -126,7 +126,7 @@ export function AnimatedIcon() {
 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <Image style={styles.image} source={require('@/assets/images/WhatsApp Image 2026-10-17 at 10.09.21.jpeg')} />
       </Animated.View>
     </View>
   );

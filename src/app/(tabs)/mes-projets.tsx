@@ -5,7 +5,19 @@ import { PrimaryButton } from '@/components/ui/primary-button';
 import { formations } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { computeProjectTotals, formatAmount, Intrant, projectStorageKey, SavedProject, toNumber } from '@/utils/projects-storage';
+import {
+  claimFreeProject,
+  createPaymentCheckout,
+  FORMATION_ACCESS_PRICE,
+  getFreeProjectSlug,
+  getPaymentStatus,
+  isProjectUnlocked,
+  PaymentMethod,
+  unlockProject,
+} from '@/utils/formation-access';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
+import * as Linking from 'expo-linking';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -17,6 +29,11 @@ function createIntrant(): Intrant {
 }
 
 const TABS = ['Coûts', 'Commercialisation'] as const;
+const PAYMENT_METHODS: { id: PaymentMethod; title: string; image: number }[] = [
+  { id: 'wave', title: 'Wave', image: require('../../../assets/images/wave.png') },
+  { id: 'orange_money', title: 'Orange Money', image: require('../../../assets/images/orange money.png') },
+  { id: 'paypal', title: 'PayPal', image: require('../../../assets/images/Paypal_2014_logo.png') },
+];
 
 export default function MesProjetsScreen() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Coûts');
@@ -26,6 +43,33 @@ export default function MesProjetsScreen() {
   const [marge, setMarge] = useState('1.5');
   const [quantiteVendue, setQuantiteVendue] = useState('');
   const [showQuantiteVendue, setShowQuantiteVendue] = useState(false);
+  const [projectUnlocked, setProjectUnlocked] = useState(false);
+  const [projectAccessReady, setProjectAccessReady] = useState(false);
+  const [freeProjectSlug, setFreeProjectSlug] = useState<string | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('wave');
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setProjectAccessReady(false);
+
+    Promise.all([isProjectUnlocked(selectedSlug), getFreeProjectSlug()]).then(([unlocked, freeSlug]) => {
+      if (!active) return;
+      setProjectUnlocked(unlocked);
+      setFreeProjectSlug(freeSlug);
+      setProjectAccessReady(true);
+      setPaymentId(null);
+      setCheckoutUrl(null);
+    }).catch(() => {
+      if (active) setProjectAccessReady(true);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedSlug]);
 
   const updateIntrant = (id: string, patch: Partial<Intrant>) => {
     setIntrants((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
@@ -85,6 +129,56 @@ export default function MesProjetsScreen() {
     }
   };
 
+  const handleFreeProject = async () => {
+    const claimed = await claimFreeProject(selectedSlug);
+    if (claimed) {
+      setFreeProjectSlug(selectedSlug);
+      setProjectUnlocked(true);
+      return;
+    }
+    setFreeProjectSlug(await getFreeProjectSlug());
+    Alert.alert('Forfait gratuit déjà utilisé', 'Un seul projet est inclus gratuitement sur cet appareil.');
+  };
+
+  const handleProjectPayment = async () => {
+    setPaymentLoading(true);
+    try {
+      const checkout = checkoutUrl && paymentId
+        ? { checkoutUrl, paymentId }
+        : await createPaymentCheckout(selectedSlug, selectedPaymentMethod, 'project');
+      setCheckoutUrl(checkout.checkoutUrl);
+      setPaymentId(checkout.paymentId);
+      await Linking.openURL(checkout.checkoutUrl);
+    } catch (error) {
+      Alert.alert('Paiement indisponible', error instanceof Error ? error.message : 'Impossible de démarrer le paiement.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleVerifyProjectPayment = async () => {
+    if (!paymentId) return;
+    setPaymentLoading(true);
+    try {
+      const status = await getPaymentStatus(paymentId);
+      if (status === 'paid') {
+        await unlockProject(selectedSlug);
+        setProjectUnlocked(true);
+        Alert.alert('Paiement confirmé', 'Votre projet est maintenant accessible.');
+      } else if (status === 'pending') {
+        Alert.alert('Paiement en attente', 'La transaction n’est pas encore confirmée. Réessayez dans quelques instants.');
+      } else {
+        setPaymentId(null);
+        setCheckoutUrl(null);
+        Alert.alert('Paiement non confirmé', 'La transaction a échoué ou a été annulée. Vous pouvez réessayer.');
+      }
+    } catch (error) {
+      Alert.alert('Vérification impossible', error instanceof Error ? error.message : 'Impossible de vérifier le paiement.');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
   const { coutProduction, prixUnitaireProduit, prixVenteRecommande } = useMemo(
     () => computeProjectTotals({ intrants, quantiteObtenue, marge }),
     [intrants, quantiteObtenue, marge]
@@ -123,7 +217,61 @@ export default function MesProjetsScreen() {
 
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <ScrollView style={{ width: '100%' }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-            {activeTab === 'Coûts' ? (
+            {!projectAccessReady ? (
+              <View style={styles.accessLoading}>
+                <ThemedText style={styles.paywallDescription}>Vérification de l’accès au projet...</ThemedText>
+              </View>
+            ) : !projectUnlocked ? (
+              <View style={styles.projectPaywall}>
+                <View style={styles.projectLockBadge}>
+                  <SymbolView tintColor="#1b8a2a" name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={24} />
+                </View>
+                <ThemedText style={styles.paywallTitle}>Accéder à ce projet</ThemedText>
+                <ThemedText style={styles.paywallDescription}>
+                  {freeProjectSlug
+                    ? 'Votre projet gratuit a déjà été choisi. Débloquez celui-ci par paiement.'
+                    : 'Un projet est gratuit au choix. Les autres sont accessibles après paiement.'}
+                </ThemedText>
+
+                {!freeProjectSlug ? (
+                  <TouchableOpacity onPress={handleFreeProject} style={styles.freeProjectButton} activeOpacity={0.85}>
+                    <ThemedText style={styles.freeProjectTitle}>Utiliser le forfait gratuit</ThemedText>
+                    <ThemedText style={styles.freeProjectCaption}>1 projet au choix inclus</ThemedText>
+                  </TouchableOpacity>
+                ) : null}
+
+                <ThemedText style={styles.projectPrice}>{FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA</ThemedText>
+                <ThemedText style={styles.paymentHint}>Ou payer avec</ThemedText>
+                <View style={styles.paymentMethods}>
+                  {PAYMENT_METHODS.map((method) => {
+                    const selected = selectedPaymentMethod === method.id;
+                    return (
+                      <TouchableOpacity
+                        key={method.id}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected }}
+                        onPress={() => setSelectedPaymentMethod(method.id)}
+                        style={[styles.paymentMethod, selected && styles.paymentMethodSelected]}
+                      >
+                        <Image source={method.image} style={styles.paymentLogo} contentFit="contain" accessibilityLabel={`${method.title} logo`} />
+                        <ThemedText style={styles.paymentMethodName}>{method.title}</ThemedText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+                <PrimaryButton
+                  title={paymentLoading ? 'Veuillez patienter...' : `Payer avec ${PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.title}`}
+                  onPress={handleProjectPayment}
+                  disabled={paymentLoading}
+                  style={styles.projectCheckoutButton}
+                />
+                {paymentId ? (
+                  <TouchableOpacity onPress={handleVerifyProjectPayment} disabled={paymentLoading} style={styles.verifyProjectButton}>
+                    <ThemedText style={styles.verifyProjectText}>J’ai payé, vérifier</ThemedText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : activeTab === 'Coûts' ? (
               <>
                 <ThemedText style={styles.sectionTitle}>Intrants</ThemedText>
 
@@ -406,4 +554,57 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   distributionLabel: { fontSize: 15, fontWeight: '600', color: '#111' },
+  accessLoading: { alignItems: 'center', paddingVertical: Spacing.five },
+  projectPaywall: {
+    alignItems: 'center',
+    backgroundColor: '#f8faf8',
+    borderWidth: 1,
+    borderColor: '#e2e9e3',
+    borderRadius: 16,
+    padding: Spacing.four,
+  },
+  projectLockBadge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#e8f5e9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.two,
+  },
+  paywallTitle: { color: '#17231a', fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: Spacing.one },
+  paywallDescription: { color: '#5c665e', fontSize: 14, textAlign: 'center', lineHeight: 20, marginBottom: Spacing.three },
+  freeProjectButton: {
+    width: '100%',
+    borderRadius: 10,
+    backgroundColor: '#e8f5e9',
+    borderWidth: 1,
+    borderColor: '#b7dfbd',
+    padding: Spacing.three,
+    alignItems: 'center',
+    marginBottom: Spacing.three,
+  },
+  freeProjectTitle: { color: '#216b31', fontSize: 15, fontWeight: '800' },
+  freeProjectCaption: { color: '#4c7554', fontSize: 12, marginTop: 3 },
+  projectPrice: { color: '#152019', fontSize: 24, fontWeight: '800', marginTop: Spacing.one },
+  paymentHint: { color: '#626b64', fontSize: 13, marginVertical: Spacing.two },
+  paymentMethods: { width: '100%', flexDirection: 'row', gap: 8, marginBottom: Spacing.three },
+  paymentMethod: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#e1e5e2',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    padding: 6,
+  },
+  paymentMethodSelected: { borderColor: '#1b8a2a', backgroundColor: '#f1f7ef' },
+  paymentLogo: { width: 56, height: 38, marginBottom: 4 },
+  paymentMethodName: { color: '#262c28', fontSize: 10, fontWeight: '700', textAlign: 'center' },
+  projectCheckoutButton: { width: '100%', marginBottom: Spacing.two },
+  verifyProjectButton: { padding: Spacing.three },
+  verifyProjectText: { color: '#1b8a2a', fontSize: 13, fontWeight: '700' },
 });
