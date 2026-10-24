@@ -10,6 +10,7 @@ export type FruitProduct = {
   name: string;
   icon: FruitProductIcon;
   photo?: number;
+  searchQuery?: string;
   formationSlug?: string;
   process?: FruitProductProcess;
 };
@@ -518,103 +519,113 @@ const catalog: FruitProducts[] = [
   {
     fruit: 'Mangue',
     products: [
-      { name: 'Jus de mangue', icon: ICON_DRINK, photo: PHOTO_JUS_DE_MANGUE, formationSlug: 'jus-de-mangue', process: jusDeMangueProcess },
-      { name: 'Confiture de mangue', icon: ICON_JAM, photo: PHOTO_CONFITURE_DE_MANGUE, formationSlug: 'confiture-de-mangue', process: confitureDeMangueProcess },
-      { name: 'Mangue séchée', icon: ICON_DRIED, photo: PHOTO_MANGUE_SECHEE, process: mangueSecheeProcess },
-      { name: 'Purée de mangue', icon: ICON_PUREE, photo: PHOTO_PUREE_DE_MANGUE, process: pureeDeMangueProcess },
-      { name: 'Nectar de mangue', icon: ICON_DRINK, photo: PHOTO_NECTAR_DE_MANGUE, process: nectarDeMangueProcess },
-      { name: 'Poudre de mangue', icon: ICON_POWDER, photo: PHOTO_POUDRE_DE_MANGUE, process: poudreDeMangueProcess },
+      { name: 'Jus de mangue', icon: ICON_DRINK, photo: PHOTO_JUS_DE_MANGUE, searchQuery: 'mango juice glass', formationSlug: 'jus-de-mangue', process: jusDeMangueProcess },
+      { name: 'Confiture de mangue', icon: ICON_JAM, photo: PHOTO_CONFITURE_DE_MANGUE, searchQuery: 'mango jam jar', formationSlug: 'confiture-de-mangue', process: confitureDeMangueProcess },
+      { name: 'Mangue séchée', icon: ICON_DRIED, photo: PHOTO_MANGUE_SECHEE, searchQuery: 'dried mango slices', process: mangueSecheeProcess },
+      { name: 'Purée de mangue', icon: ICON_PUREE, photo: PHOTO_PUREE_DE_MANGUE, searchQuery: 'mango puree bowl', process: pureeDeMangueProcess },
+      { name: 'Nectar de mangue', icon: ICON_DRINK, photo: PHOTO_NECTAR_DE_MANGUE, searchQuery: 'mango nectar bottle', process: nectarDeMangueProcess },
+      { name: 'Poudre de mangue', icon: ICON_POWDER, photo: PHOTO_POUDRE_DE_MANGUE, searchQuery: 'mango powder bowl', process: poudreDeMangueProcess },
     ],
   },
   {
     fruit: 'Ananas',
     products: [
-      { name: 'Jus d’ananas', icon: ICON_DRINK, process: drinkProcess('ananas') },
-      { name: 'Confiture d’ananas', icon: ICON_JAM, process: jamProcess('ananas') },
-      { name: 'Ananas séché', icon: ICON_DRIED, process: driedProcess('ananas') },
-      { name: 'Sirop d’ananas', icon: ICON_SYRUP, process: syrupProcess('ananas') },
-      { name: 'Ananas au sirop (conserve)', icon: ICON_JAM, process: conserveProcess('ananas') },
+      { name: 'Jus d’ananas', icon: ICON_DRINK, searchQuery: 'pineapple juice glass', process: drinkProcess('ananas') },
+      { name: 'Confiture d’ananas', icon: ICON_JAM, searchQuery: 'pineapple jam jar', process: jamProcess('ananas') },
+      { name: 'Ananas séché', icon: ICON_DRIED, searchQuery: 'dried pineapple slices', process: driedProcess('ananas') },
+      { name: 'Sirop d’ananas', icon: ICON_SYRUP, searchQuery: 'pineapple syrup bottle', process: syrupProcess('ananas') },
+      { name: 'Ananas au sirop (conserve)', icon: ICON_JAM, searchQuery: 'canned pineapple syrup', process: conserveProcess('ananas') },
     ],
   },
   {
     fruit: 'Banane',
     products: [
-      { name: 'Banane séchée', icon: ICON_DRIED, photo: PHOTO_BANANE_SECHEE, process: driedProcess('bananes') },
-      { name: 'Farine de banane', icon: ICON_POWDER, photo: PHOTO_FARINE_DE_BANANE, process: flourProcess('bananes') },
-      { name: 'Chips de banane', icon: ICON_DRIED, photo: PHOTO_CHIPS_DE_BANANE, process: chipsProcess('bananes') },
-      { name: 'Confiture de banane', icon: ICON_JAM, photo: PHOTO_CONFITURE_DE_BANANE, process: jamProcess('bananes') },
-      { name: 'Purée de banane', icon: ICON_PUREE, photo: PHOTO_PUREE_DE_BANANE, process: jamProcess('bananes') },
+      { name: 'Banane séchée', icon: ICON_DRIED, photo: PHOTO_BANANE_SECHEE, searchQuery: 'dried banana slices', process: driedProcess('bananes') },
+      { name: 'Farine de banane', icon: ICON_POWDER, photo: PHOTO_FARINE_DE_BANANE, searchQuery: 'banana flour bowl', process: flourProcess('bananes') },
+      { name: 'Chips de banane', icon: ICON_DRIED, photo: PHOTO_CHIPS_DE_BANANE, searchQuery: 'banana chips bowl', process: chipsProcess('bananes') },
+      { name: 'Confiture de banane', icon: ICON_JAM, photo: PHOTO_CONFITURE_DE_BANANE, searchQuery: 'banana jam jar', process: jamProcess('bananes') },
+      { name: 'Purée de banane', icon: ICON_PUREE, photo: PHOTO_PUREE_DE_BANANE, searchQuery: 'banana puree bowl', process: jamProcess('bananes') },
     ],
   },
   {
     fruit: 'Papaye',
     products: [
-      { name: 'Jus de papaye', icon: ICON_DRINK, process: drinkProcess('papayes') },
-      { name: 'Confiture de papaye', icon: ICON_JAM, process: jamProcess('papayes') },
-      { name: 'Papaye séchée', icon: ICON_DRIED, process: driedProcess('papayes') },
-      { name: 'Punch/nectar de papaye', icon: ICON_DRINK, process: nectarProcess('papayes') },
+      { name: 'Jus de papaye', icon: ICON_DRINK, searchQuery: 'papaya juice glass', process: drinkProcess('papayes') },
+      { name: 'Confiture de papaye', icon: ICON_JAM, searchQuery: 'papaya jam jar', process: jamProcess('papayes') },
+      { name: 'Papaye séchée', icon: ICON_DRIED, searchQuery: 'dried papaya slices', process: driedProcess('papayes') },
+      { name: 'Punch/nectar de papaye', icon: ICON_DRINK, searchQuery: 'papaya nectar drink', process: nectarProcess('papayes') },
     ],
   },
   {
     fruit: 'Orange',
     products: [
-      { name: 'Jus d’orange', icon: ICON_DRINK, process: drinkProcess('oranges') },
-      { name: 'Confiture d’orange', icon: ICON_JAM, process: jamProcess('oranges') },
-      { name: 'Écorces d’orange confites', icon: ICON_JAM, process: confitProcess('oranges') },
-      { name: 'Sirop d’orange', icon: ICON_SYRUP, process: syrupProcess('oranges') },
+      { name: 'Jus d’orange', icon: ICON_DRINK, searchQuery: 'orange juice glass', process: drinkProcess('oranges') },
+      { name: 'Confiture d’orange', icon: ICON_JAM, searchQuery: 'orange marmalade jar', process: jamProcess('oranges') },
+      { name: 'Écorces d’orange confites', icon: ICON_JAM, searchQuery: 'candied orange peel', process: confitProcess('oranges') },
+      { name: 'Sirop d’orange', icon: ICON_SYRUP, searchQuery: 'orange syrup bottle', process: syrupProcess('oranges') },
     ],
   },
   {
     fruit: 'Citron',
     products: [
-      { name: 'Jus de citron', icon: ICON_DRINK, process: drinkProcess('citrons') },
-      { name: 'Sirop de citron', icon: ICON_SYRUP, process: syrupProcess('citrons') },
-      { name: 'Citron confit', icon: ICON_JAM, process: confitProcess('citrons') },
-      { name: 'Poudre de citron séché', icon: ICON_POWDER, process: powderProcess('citrons') },
+      { name: 'Jus de citron', icon: ICON_DRINK, searchQuery: 'lemon juice glass', process: drinkProcess('citrons') },
+      { name: 'Sirop de citron', icon: ICON_SYRUP, searchQuery: 'lemon syrup bottle', process: syrupProcess('citrons') },
+      { name: 'Citron confit', icon: ICON_JAM, searchQuery: 'candied lemon', process: confitProcess('citrons') },
+      { name: 'Poudre de citron séché', icon: ICON_POWDER, searchQuery: 'dried lemon powder', process: powderProcess('citrons') },
     ],
   },
   {
     fruit: 'Goyave',
     products: [
-      { name: 'Jus de goyave', icon: ICON_DRINK, process: drinkProcess('goyaves') },
-      { name: 'Confiture de goyave', icon: ICON_JAM, process: jamProcess('goyaves') },
-      { name: 'Pâte de goyave', icon: ICON_JAM, process: pasteProcess('goyaves') },
-      { name: 'Goyave séchée', icon: ICON_DRIED, process: driedProcess('goyaves') },
+      { name: 'Jus de goyave', icon: ICON_DRINK, searchQuery: 'guava juice glass', process: drinkProcess('goyaves') },
+      { name: 'Confiture de goyave', icon: ICON_JAM, searchQuery: 'guava jam jar', process: jamProcess('goyaves') },
+      { name: 'Pâte de goyave', icon: ICON_JAM, searchQuery: 'guava paste', process: pasteProcess('goyaves') },
+      { name: 'Goyave séchée', icon: ICON_DRIED, searchQuery: 'dried guava slices', process: driedProcess('goyaves') },
     ],
   },
   {
     fruit: 'Tamarin',
     products: [
-      { name: 'Jus de tamarin', icon: ICON_DRINK, process: drinkProcess('gousses de tamarin') },
-      { name: 'Sirop de tamarin', icon: ICON_SYRUP, process: syrupProcess('gousses de tamarin') },
-      { name: 'Confiture de tamarin', icon: ICON_JAM, process: jamProcess('gousses de tamarin') },
-      { name: 'Pâte de tamarin', icon: ICON_JAM, process: pasteProcess('gousses de tamarin') },
+      { name: 'Jus de tamarin', icon: ICON_DRINK, searchQuery: 'tamarind juice glass', process: drinkProcess('gousses de tamarin') },
+      { name: 'Sirop de tamarin', icon: ICON_SYRUP, searchQuery: 'tamarind syrup bottle', process: syrupProcess('gousses de tamarin') },
+      { name: 'Confiture de tamarin', icon: ICON_JAM, searchQuery: 'tamarind jam jar', process: jamProcess('gousses de tamarin') },
+      { name: 'Pâte de tamarin', icon: ICON_JAM, searchQuery: 'tamarind paste', process: pasteProcess('gousses de tamarin') },
     ],
   },
   {
     fruit: 'Pastèque',
     products: [
-      { name: 'Jus de pastèque', icon: ICON_DRINK, process: drinkProcess('pastèques') },
-      { name: 'Sirop de pastèque', icon: ICON_SYRUP, process: syrupProcess('pastèques') },
-      { name: 'Confiture de pastèque', icon: ICON_JAM, process: jamProcess('pastèques') },
+      { name: 'Jus de pastèque', icon: ICON_DRINK, searchQuery: 'watermelon juice glass', process: drinkProcess('pastèques') },
+      { name: 'Sirop de pastèque', icon: ICON_SYRUP, searchQuery: 'watermelon syrup bottle', process: syrupProcess('pastèques') },
+      { name: 'Confiture de pastèque', icon: ICON_JAM, searchQuery: 'watermelon jam jar', process: jamProcess('pastèques') },
     ],
   },
   {
     fruit: 'Bissap',
     products: [
-      { name: 'Jus de bissap', icon: ICON_DRINK, process: drinkProcess('fleurs de bissap') },
-      { name: 'Sirop de bissap', icon: ICON_SYRUP, process: syrupProcess('fleurs de bissap') },
-      { name: 'Confiture de bissap', icon: ICON_JAM, process: jamProcess('fleurs de bissap') },
-      { name: 'Bissap séché (fleurs)', icon: ICON_FLOWER, process: driedFlowerProcess() },
+      { name: 'Jus de bissap', icon: ICON_DRINK, searchQuery: 'hibiscus juice glass', process: drinkProcess('fleurs de bissap') },
+      { name: 'Sirop de bissap', icon: ICON_SYRUP, searchQuery: 'hibiscus syrup bottle', process: syrupProcess('fleurs de bissap') },
+      { name: 'Confiture de bissap', icon: ICON_JAM, searchQuery: 'hibiscus jam jar', process: jamProcess('fleurs de bissap') },
+      { name: 'Bissap séché (fleurs)', icon: ICON_FLOWER, searchQuery: 'dried hibiscus flowers', process: driedFlowerProcess() },
     ],
   },
   {
     fruit: 'Gingembre',
     products: [
-      { name: 'Jus de gingembre', icon: ICON_DRINK, process: drinkProcess('rhizomes de gingembre') },
-      { name: 'Sirop de gingembre', icon: ICON_SYRUP, process: syrupProcess('rhizomes de gingembre') },
-      { name: 'Poudre de gingembre', icon: ICON_POWDER, process: powderProcess('rhizomes de gingembre') },
-      { name: 'Gingembre confit', icon: ICON_JAM, process: confitProcess('rhizomes de gingembre') },
+      { name: 'Jus de gingembre', icon: ICON_DRINK, searchQuery: 'ginger juice glass', process: drinkProcess('rhizomes de gingembre') },
+      { name: 'Sirop de gingembre', icon: ICON_SYRUP, searchQuery: 'ginger syrup bottle', process: syrupProcess('rhizomes de gingembre') },
+      { name: 'Poudre de gingembre', icon: ICON_POWDER, searchQuery: 'ginger powder bowl', process: powderProcess('rhizomes de gingembre') },
+      { name: 'Gingembre confit', icon: ICON_JAM, searchQuery: 'candied ginger', process: confitProcess('rhizomes de gingembre') },
+    ],
+  },
+  {
+    fruit: 'Pomme',
+    products: [
+      { name: 'Jus de pomme', icon: ICON_DRINK, searchQuery: 'apple juice glass', process: drinkProcess('pommes') },
+      { name: 'Confiture de pomme', icon: ICON_JAM, searchQuery: 'apple jam jar', process: jamProcess('pommes') },
+      { name: 'Compote de pomme', icon: ICON_PUREE, searchQuery: 'apple sauce bowl', process: jamProcess('pommes') },
+      { name: 'Pomme séchée', icon: ICON_DRIED, searchQuery: 'dried apple slices', process: driedProcess('pommes') },
+      { name: 'Vinaigre de pomme', icon: ICON_SYRUP, searchQuery: 'apple cider vinegar bottle', process: syrupProcess('pommes') },
     ],
   },
 ];

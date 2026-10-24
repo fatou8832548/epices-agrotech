@@ -1,8 +1,8 @@
+import { ProductImage } from '@/components/product-image';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getProductByName } from '@/constants/fruit-products';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
@@ -27,15 +27,13 @@ export default function ProductDetailScreen() {
             <SymbolView tintColor="#1b8a2a" name={{ ios: 'chevron.left', android: 'arrow_back', web: 'chevron-left' }} size={22} />
           </TouchableOpacity>
           <View style={styles.productIcon}>
-            {product?.photo ? (
-              <ExpoImage source={product.photo} style={styles.productPhoto} contentFit="cover" />
-            ) : (
-              <SymbolView
-                tintColor="#1b8a2a"
-                name={product?.icon ?? { ios: 'shippingbox.fill', android: 'inventory_2', web: 'package' }}
-                size={18}
-              />
-            )}
+            <ProductImage
+              photo={product?.photo}
+              query={product?.searchQuery ?? name ?? 'produit'}
+              icon={product?.icon ?? { ios: 'shippingbox.fill', android: 'inventory_2', web: 'package' }}
+              iconSize={18}
+              style={styles.productPhoto}
+            />
           </View>
           <ThemedText style={styles.headerTitle}>{name || 'Produit'}</ThemedText>
           <TouchableOpacity onPress={() => setFavorite((f) => !f)} accessibilityLabel="Favori">

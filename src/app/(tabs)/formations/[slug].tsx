@@ -3,16 +3,32 @@ import { ThemedView } from '@/components/themed-view';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { FormationDocument, formations, QuizQuestion } from '@/constants/formations';
 import { BottomTabInset, Spacing } from '@/constants/theme';
+import { FORMATION_ACCESS_PRICE, isFormationUnlocked, unlockFormation } from '@/utils/formation-access';
 import { Asset } from 'expo-asset';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { SymbolView } from 'expo-symbols';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TABS = ['Modules', 'Vidéo', 'Documents', 'Quiz'] as const;
+const WAVE_DEEP_LINK = 'wave://';
+const WAVE_WEB_URL = 'https://www.waveapps.com/';
+
+async function openWavePayment() {
+  try {
+    const supported = await Linking.canOpenURL(WAVE_DEEP_LINK);
+    if (supported) {
+      await Linking.openURL(WAVE_DEEP_LINK);
+      return;
+    }
+    await Linking.openURL(WAVE_WEB_URL);
+  } catch {
+    await Linking.openURL(WAVE_WEB_URL);
+  }
+}
 
 async function openDocument(doc: FormationDocument, router: ReturnType<typeof useRouter>) {
   try {
@@ -134,13 +150,73 @@ export default function FormationDetailScreen() {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Modules');
   const [activeQuizModuleIndex, setActiveQuizModuleIndex] = useState<number | null>(null);
   const [expandedModuleIndex, setExpandedModuleIndex] = useState<number | null>(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
 
   const formation = formations.find((f) => f.slug === slug) ?? formations[0];
+
+  useEffect(() => {
+    let active = true;
+
+    isFormationUnlocked(String(slug)).then((hasAccess) => {
+      if (active) {
+        setIsUnlocked(hasAccess);
+        setCheckingAccess(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [slug]);
 
   const handleTabChange = (tab: (typeof TABS)[number]) => {
     setActiveTab(tab);
     setActiveQuizModuleIndex(null);
   };
+
+  const handlePayment = async () => {
+    await openWavePayment();
+    Alert.alert(
+      'Paiement Wave',
+      'L’application Wave a été ouverte. Effectuez le paiement puis revenez dans l’application pour reprendre votre cours.',
+    );
+  };
+
+  if (checkingAccess) {
+    return null;
+  }
+
+  if (!isUnlocked) {
+    return (
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.lockContainer}>
+            <View style={styles.lockBadge}>
+              <SymbolView tintColor="#1b8a2a" name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }} size={28} />
+            </View>
+            <ThemedText style={styles.lockTitle}>Accès payant</ThemedText>
+            <ThemedText style={styles.lockText}>Cette formation est réservée aux utilisateurs ayant payé leur accès via Wave.</ThemedText>
+            <ThemedText style={styles.lockPrice}>{FORMATION_ACCESS_PRICE.toLocaleString('fr-FR')} FCFA</ThemedText>
+
+            <TouchableOpacity onPress={handlePayment} activeOpacity={0.9} style={styles.wavePayButton}>
+              <View style={styles.waveLogoWrap}>
+                <View style={styles.waveLogoBadge}>
+                  <ThemedText style={styles.waveLogoGlyph}>◉</ThemedText>
+                </View>
+                <ThemedText style={styles.waveLogoWord}>wave</ThemedText>
+              </View>
+              <ThemedText style={styles.waveButtonText}>Payer avec Wave</ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
+              <ThemedText style={styles.backLinkText}>Retour aux formations</ThemedText>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -294,6 +370,18 @@ const styles = StyleSheet.create({
     marginRight: Spacing.three,
   },
   headerTextColumn: { flex: 1, alignItems: 'center' },
+  fruitPicker: { marginTop: Spacing.three, flexGrow: 0 },
+  fruitPickerContent: { gap: Spacing.two, paddingRight: Spacing.three },
+  fruitChip: {
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderRadius: 20,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+  },
+  fruitChipActive: { borderColor: '#1b8a2a', backgroundColor: '#f1f7ef' },
+  fruitChipLabel: { fontSize: 13, color: '#666' },
+  fruitChipLabelActive: { color: '#1b8a2a', fontWeight: '700' },
   headerTitle: { color: '#1b8a2a', fontSize: 20, fontWeight: '700' },
   headerSubtitle: { color: '#666', fontSize: 14, marginTop: 2 },
   tabsRow: {
@@ -364,6 +452,69 @@ const styles = StyleSheet.create({
   documentType: { fontSize: 12, color: '#666', marginTop: 2 },
   emptyText: { color: '#666', textAlign: 'center', marginTop: Spacing.four },
   startButton: { marginTop: Spacing.four },
+  lockContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.five,
+  },
+  lockBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#edf8ef',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.three,
+  },
+  lockTitle: { fontSize: 24, fontWeight: '800', marginBottom: Spacing.two, color: '#111' },
+  lockText: { fontSize: 15, color: '#555', textAlign: 'center', lineHeight: 22, marginBottom: Spacing.two },
+  lockPrice: { fontSize: 28, fontWeight: '800', color: '#1b8a2a', marginBottom: Spacing.three },
+  wavePayButton: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#000000',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: Spacing.three,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waveLogoWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  waveLogoBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  waveLogoGlyph: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  waveLogoWord: {
+    color: '#ffffff',
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -1,
+  },
+  waveButtonText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  backLink: { marginTop: Spacing.one },
+  backLinkText: { color: '#1b8a2a', fontSize: 14, fontWeight: '700' },
   video: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#000' },
   quizBackRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, marginBottom: Spacing.three },
   quizBackLabel: { fontSize: 15, fontWeight: '700', color: '#1b8a2a' },

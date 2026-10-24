@@ -783,6 +783,426 @@ const qualiteConservationQuiz: QuizQuestion[] = [
     correctIndex: 0,
   },
 ];
+
+// Fruit parameters used to generate per-fruit "jus" formations below.
+type JuiceFruitParams = { key: string; plural: string; juice: string; juiceCap: string };
+
+const NEW_JUICE_FRUITS: JuiceFruitParams[] = [
+  { key: 'Ananas', plural: 'ananas', juice: 'jus d’ananas', juiceCap: 'Jus d’ananas' },
+  { key: 'Papaye', plural: 'papayes', juice: 'jus de papaye', juiceCap: 'Jus de papaye' },
+  { key: 'Orange', plural: 'oranges', juice: 'jus d’orange', juiceCap: 'Jus d’orange' },
+  { key: 'Citron', plural: 'citrons', juice: 'jus de citron', juiceCap: 'Jus de citron' },
+  { key: 'Goyave', plural: 'goyaves', juice: 'jus de goyave', juiceCap: 'Jus de goyave' },
+  { key: 'Tamarin', plural: 'tamarins', juice: 'jus de tamarin', juiceCap: 'Jus de tamarin' },
+  { key: 'Pastèque', plural: 'pastèques', juice: 'jus de pastèque', juiceCap: 'Jus de pastèque' },
+  { key: 'Bissap', plural: 'fleurs de bissap', juice: 'jus de bissap', juiceCap: 'Jus de bissap' },
+  { key: 'Gingembre', plural: 'rhizomes de gingembre', juice: 'jus de gingembre', juiceCap: 'Jus de gingembre' },
+  { key: 'Pomme', plural: 'pommes', juice: 'jus de pomme', juiceCap: 'Jus de pomme' },
+];
+
+function introJuiceContentFor(f: JuiceFruitParams): string[] {
+  return [
+    `La transformation des ${f.plural} en jus est une activité agroalimentaire qui permet de valoriser les fruits, de réduire les pertes post-récolte et de créer un produit à plus longue durée de conservation que le fruit frais.`,
+    `Ce module vous présente les grandes étapes du procédé : réception et tri des ${f.plural}, lavage, extraction du jus, pasteurisation, conditionnement et étiquetage, avant la commercialisation.`,
+    `Une bonne transformation commence toujours par le choix de ${f.plural} sains et arrivés à bonne maturité : c'est la base d'un ${f.juice} de qualité, sûr pour la santé du consommateur et agréable en goût.`,
+    "Tout au long de cette formation, vous apprendrez également les bonnes pratiques d'hygiène, les techniques de pasteurisation, le conditionnement et enfin la gestion de la qualité et de la conservation du produit fini.",
+  ];
+}
+
+function introJuiceQuizFor(f: JuiceFruitParams): QuizQuestion[] {
+  return [
+    {
+      question: `Quel est le principal critère pour choisir les ${f.plural} destinés à la transformation en jus ?`,
+      options: ['Leur couleur uniquement', 'Leur degré de maturité et leur bon état sanitaire', 'Leur taille la plus grande possible', 'Leur prix le plus bas'],
+      correctIndex: 1,
+    },
+    {
+      question: `Pourquoi trie-t-on les ${f.plural} avant transformation ?`,
+      options: [
+        'Pour éliminer les fruits abîmés, pourris ou trop verts',
+        'Pour les compter plus facilement',
+        "Ce n'est pas nécessaire",
+        'Pour les vendre plus cher',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Quelle est la première étape avant le pressage/extraction du jus ?',
+      options: ['La mise en bouteille', 'Le lavage et l’épluchage des fruits', 'L’étiquetage', 'La pasteurisation'],
+      correctIndex: 1,
+    },
+    {
+      question: `À quel stade de maturité les ${f.plural} sont-ils les plus adaptés pour faire du jus ?`,
+      options: ['Verts et durs', 'Mûrs à point, sucrés et parfumés', 'Pourris', 'Immatures et acides'],
+      correctIndex: 1,
+    },
+    {
+      question: 'Pourquoi peser les fruits en début de production est-il utile ?',
+      options: [
+        'Pour calculer les rendements et les besoins en intrants',
+        'Ce n’est jamais utile',
+        'Uniquement pour la décoration',
+        'Pour fixer le prix de vente au hasard',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: `Que risque-t-on si on utilise des ${f.plural} trop mûrs ou abîmés ?`,
+      options: [
+        'Une meilleure qualité du jus',
+        'Un jus de moins bonne qualité et un risque sanitaire accru',
+        'Aucun risque',
+        'Un jus plus sucré sans inconvénient',
+      ],
+      correctIndex: 1,
+    },
+    {
+      question: `Quel matériel est essentiel pour bien laver les ${f.plural} avant transformation ?`,
+      options: ['Eau propre et bacs de lavage adaptés', 'Aucun matériel particulier', 'Uniquement un chiffon sec', 'De la peinture'],
+      correctIndex: 0,
+    },
+    {
+      question: "Pourquoi planifie-t-on l'approvisionnement en fruits selon la saison de récolte ?",
+      options: [
+        'Pour garantir la disponibilité et la fraîcheur des matières premières',
+        "Ce n'est pas nécessaire",
+        'Pour augmenter les coûts inutilement',
+        'Le calendrier n’a aucune importance',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Quel est un objectif clé du module d’introduction à la transformation ?',
+      options: [
+        'Comprendre les étapes générales du procédé et les bonnes pratiques de départ',
+        'Apprendre à vendre le produit fini uniquement',
+        'Se concentrer uniquement sur l’étiquetage',
+        'Ignorer les normes de qualité',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Pourquoi établir une fiche technique du produit dès le début du projet ?',
+      options: [
+        'Pour formaliser les étapes, ingrédients et paramètres clés du procédé',
+        'Ce n’est jamais utile',
+        'Uniquement pour la publicité',
+        'Pour fixer un prix au hasard',
+      ],
+      correctIndex: 0,
+    },
+  ];
+}
+
+function extractionPasteurisationQuizFor(f: JuiceFruitParams): QuizQuestion[] {
+  return [
+    {
+      question: "Quel est l'objectif principal de la pasteurisation du jus ?",
+      options: [
+        'Améliorer uniquement la couleur du jus',
+        'Détruire les microorganismes pathogènes et prolonger la conservation',
+        'Ajouter du sucre',
+        'Réduire le volume du jus',
+      ],
+      correctIndex: 1,
+    },
+    {
+      question: 'Que faut-il surveiller pendant la pasteurisation ?',
+      options: ['Le bruit ambiant', 'La température et la durée de traitement', 'La couleur des emballages', 'Le nombre de bouteilles'],
+      correctIndex: 1,
+    },
+    {
+      question: `Après extraction, pourquoi filtre-t-on souvent le ${f.juice} ?`,
+      options: ['Pour retirer les fibres et particules solides', 'Pour le colorer', 'Pour augmenter son volume', "Ce n'est jamais fait"],
+      correctIndex: 0,
+    },
+    {
+      question: `Quelle méthode est couramment utilisée pour extraire le jus de la pulpe (${f.plural}) ?`,
+      options: ['Le pressage/broyage mécanique de la pulpe', 'La combustion', 'Le séchage au soleil uniquement', 'La congélation seule'],
+      correctIndex: 0,
+    },
+    {
+      question: 'Que se passe-t-il si la température de pasteurisation est trop basse ?',
+      options: [
+        'Les microorganismes ne sont pas suffisamment détruits, risque sanitaire',
+        'Le jus est de meilleure qualité',
+        'Rien de particulier',
+        'Le jus devient plus sucré',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Pourquoi refroidit-on rapidement le jus après pasteurisation ?',
+      options: [
+        'Pour limiter la prolifération de microorganismes et préserver la qualité',
+        "Ce n'est pas nécessaire",
+        'Pour le rendre plus acide',
+        'Pour changer sa couleur',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Quel équipement est généralement utilisé pour la pasteurisation à petite échelle ?',
+      options: ['Un bain-marie ou une marmite avec contrôle de température', 'Un four à micro-ondes', 'Un réfrigérateur', 'Une centrifugeuse'],
+      correctIndex: 0,
+    },
+    {
+      question: "Pourquoi est-il important de standardiser (homogénéiser) le jus avant conditionnement ?",
+      options: [
+        "Pour obtenir une texture et une qualité constantes d'un lot à l'autre",
+        "Ce n'est pas important",
+        'Pour le rendre plus liquide uniquement',
+        'Pour réduire son volume',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Quel paramètre du jus peut-on ajuster après extraction (ex : dilution, sucre) ?',
+      options: ['Le degré Brix (teneur en sucre) et l’acidité', 'La couleur des bouteilles', 'La date de récolte', 'Le nom du produit'],
+      correctIndex: 0,
+    },
+    {
+      question: 'Pourquoi contrôle-t-on la couleur et l’odeur du jus après pasteurisation ?',
+      options: [
+        'Pour détecter tout signe d’altération avant conditionnement',
+        "Ce n'est jamais vérifié",
+        'Pour changer la recette',
+        'Uniquement pour la publicité',
+      ],
+      correctIndex: 0,
+    },
+  ];
+}
+
+function conditionnementEtiquetageQuizFor(f: JuiceFruitParams): QuizQuestion[] {
+  return [
+    {
+      question: "Pourquoi remplit-on les bouteilles de jus à chaud (à haute température) ?",
+      options: [
+        'Pour limiter la contamination et favoriser une bonne conservation',
+        'Pour gagner du temps uniquement',
+        'Pour améliorer le goût',
+        "Ce n'est pas important",
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: "Quelle information est obligatoire sur l'étiquette d'un produit alimentaire ?",
+      options: [
+        "La date de fabrication/péremption et la liste des ingrédients",
+        "Le nom du transporteur",
+        "La couleur préférée du fabricant",
+        "Aucune information n'est obligatoire",
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Quel est un avantage d’un bon conditionnement du produit ?',
+      options: ['Il augmente les coûts sans bénéfice', 'Il protège le produit et rassure le consommateur', 'Il rend le produit périssable plus vite', 'Il n’a aucun effet'],
+      correctIndex: 1,
+    },
+    {
+      question: 'Pourquoi vérifie-t-on l’étanchéité des bouteilles après remplissage ?',
+      options: [
+        'Pour éviter les fuites et la contamination du produit',
+        "Ce n'est pas nécessaire",
+        'Pour améliorer uniquement l’esthétique',
+        'Pour augmenter le poids du produit',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: `Quel type d’emballage est recommandé pour le ${f.juice} en bouteille ?`,
+      options: ['Un emballage alimentaire sécurisé et recyclable (ex : PET)', 'N’importe quel contenant non alimentaire', 'Un sac en papier simple', 'Un contenant non hermétique'],
+      correctIndex: 0,
+    },
+    {
+      question: 'Que doit indiquer le numéro de lot sur l’étiquette ?',
+      options: [
+        'Il permet la traçabilité du produit en cas de problème',
+        'Il n’a aucune utilité',
+        'Il indique uniquement le prix',
+        'Il remplace la date de péremption',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Pourquoi stocke-t-on les bouteilles à l’abri de la lumière directe après conditionnement ?',
+      options: [
+        'Pour préserver la couleur et la qualité nutritionnelle du jus',
+        "Ce n'est pas important",
+        'Pour accélérer la fermentation',
+        'Pour changer le goût du produit',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: "Quel élément d'étiquetage aide le consommateur à connaître la composition du produit ?",
+      options: ['La liste des ingrédients', 'Le nom du transporteur', 'La couleur du bouchon', 'Le numéro de téléphone du magasin'],
+      correctIndex: 0,
+    },
+    {
+      question: "Pourquoi contrôle-t-on le poids/volume des bouteilles avant expédition ?",
+      options: [
+        'Pour garantir la conformité avec ce qui est annoncé sur l’étiquette',
+        "Ce n'est jamais vérifié",
+        'Pour augmenter le prix de vente',
+        'Pour changer la recette',
+      ],
+      correctIndex: 0,
+    },
+    {
+      question: 'Pourquoi appose-t-on un cachet ou sceau de garantie sur certains emballages ?',
+      options: [
+        'Pour prouver l’intégrité du produit avant première ouverture',
+        'Ce n’est jamais fait',
+        'Uniquement pour la décoration',
+        'Pour augmenter le poids du produit',
+      ],
+      correctIndex: 0,
+    },
+  ];
+}
+
+// Content/quiz for the "Confiture de banane" formation's first module (banane has no "jus" product in the catalog).
+const selectionPreparationBananeContent: string[] = [
+  "La confiture de banane est un produit transformé obtenu par cuisson de la pulpe de banane avec du sucre, ce qui permet de conserver le fruit bien au-delà de sa saison de récolte.",
+  "Ce module d'introduction présente les étapes clés de la sélection et de la préparation des fruits : tri par maturité, lavage, épluchage et découpe de la pulpe.",
+  "Le choix de bananes bien mûres, saines et sans meurtrissures est essentiel : il conditionne directement la qualité, le goût et la sécurité sanitaire de la confiture obtenue.",
+  "Les modules suivants aborderont les bonnes pratiques d'hygiène, la cuisson et le dosage sucre/pectine, la mise en pot et la stérilisation, puis la gestion de la qualité et de la conservation.",
+];
+
+const selectionPreparationBananeQuiz: QuizQuestion[] = [
+  {
+    question: 'Pour une confiture de qualité, quel type de bananes privilégie-t-on ?',
+    options: ['Des bananes bien mûres, saines et sans meurtrissures', 'Des bananes encore vertes', 'Des bananes abîmées pour ne rien perdre', "N'importe quel fruit"],
+    correctIndex: 0,
+  },
+  {
+    question: 'Quelle étape suit généralement le lavage des fruits ?',
+    options: ['L’épluchage et le découpage de la pulpe', 'La mise en carton', "L'étiquetage final", 'Le transport vers le client'],
+    correctIndex: 0,
+  },
+  {
+    question: 'Pourquoi élimine-t-on la peau de la banane avant cuisson ?',
+    options: [
+      "Elle n'est pas adaptée à la confiture et nuit à la texture",
+      'Pour augmenter le poids du produit',
+      "Ce n'est jamais fait",
+      'Pour colorer la confiture',
+    ],
+    correctIndex: 0,
+  },
+  {
+    question: 'Pourquoi découpe-t-on la pulpe de banane en morceaux avant cuisson ?',
+    options: [
+      'Pour faciliter et accélérer une cuisson homogène',
+      "Ce n'est pas nécessaire",
+      'Pour la rendre plus dure',
+      'Pour changer sa couleur',
+    ],
+    correctIndex: 0,
+  },
+  {
+    question: 'Quel est un signe qu’une banane n’est plus propre à la transformation ?',
+    options: ['Présence de moisissures ou odeur anormale', 'Une couleur jaune normale', 'Un parfum sucré agréable', 'Une texture ferme et saine'],
+    correctIndex: 0,
+  },
+  {
+    question: 'Pourquoi trie-t-on les fruits par degré de maturité avant préparation ?',
+    options: [
+      'Pour obtenir une cuisson et un goût homogènes',
+      'Ce n’a aucune importance',
+      'Pour les vendre séparément uniquement',
+      'Pour les compter plus vite',
+    ],
+    correctIndex: 0,
+  },
+  {
+    question: 'Quel ustensile est couramment utilisé pour peser les fruits et ingrédients ?',
+    options: ['Une balance', 'Un thermomètre uniquement', 'Une règle', 'Un chronomètre'],
+    correctIndex: 0,
+  },
+  {
+    question: 'Pourquoi rincer les fruits à l’eau claire avant préparation ?',
+    options: [
+      'Pour éliminer poussières, résidus et micro-organismes de surface',
+      "Ce n'est pas nécessaire",
+      'Pour les ramollir',
+      'Pour changer leur goût',
+    ],
+    correctIndex: 0,
+  },
+  {
+    question: 'Quel est un critère important pour choisir les ustensiles de préparation ?',
+    options: ['Qu’ils soient propres et adaptés au contact alimentaire', 'Leur couleur uniquement', 'Leur prix le plus bas', 'Leur poids le plus lourd'],
+    correctIndex: 0,
+  },
+  {
+    question: 'Pourquoi retirer les parties abimées d’un fruit avant de l’utiliser ?',
+    options: [
+      'Pour éviter d’altérer le goût et la qualité sanitaire du produit final',
+      "Ce n'est pas nécessaire",
+      'Pour augmenter le rendement',
+      'Pour changer la couleur du produit',
+    ],
+    correctIndex: 0,
+  },
+];
+
+const juiceFormations: Formation[] = NEW_JUICE_FRUITS.map((f) => ({
+  slug: `jus-de-${f.key.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-')}`,
+  title: 'Formation',
+  subtitle: f.juiceCap,
+  fruit: f.key,
+  modules: [
+    { title: `Introduction à la transformation ${f.key === 'Bissap' ? 'du bissap' : f.key === 'Gingembre' ? 'du gingembre' : `des ${f.plural}`}`, duration: '10 min', quiz: introJuiceQuizFor(f), content: introJuiceContentFor(f) },
+    { title: "Bonnes pratiques d'hygiène et de fabrication", duration: '12 min', quiz: hygieneQuiz },
+    { title: "Techniques d'extraction et de pasteurisation", duration: '15 min', quiz: extractionPasteurisationQuizFor(f) },
+    { title: 'Conditionnement et étiquetage', duration: '8 min', quiz: conditionnementEtiquetageQuizFor(f) },
+    { title: 'Gestion de la qualité et conservation', duration: '10 min', quiz: qualiteConservationQuiz },
+  ],
+  documents: [],
+  commercialisation: {
+    packagingTitle: 'Bouteille en verre 500ml',
+    packagingEmoji: '🍾',
+    packagingFeatures: ['Sécurisé', 'Recyclable', 'Bonne conservation', 'Format apprécié'],
+    distributionChannels: [
+      { label: 'Vente directe', icon: { ios: 'hand.raised.fill', android: 'handshake', web: 'handshake' } },
+      { label: 'Boutiques / Épiceries', icon: { ios: 'storefront.fill', android: 'store', web: 'store' } },
+      { label: 'Supermarchés', icon: { ios: 'cart.fill', android: 'shopping_cart', web: 'shopping-cart' } },
+      { label: 'Restauration / Hôtels', icon: { ios: 'fork.knife', android: 'restaurant', web: 'utensils' } },
+      { label: 'Vente en ligne', icon: { ios: 'globe', android: 'language', web: 'globe' } },
+    ],
+  },
+}));
+
+const confitureDeBananeFormation: Formation = {
+  slug: 'confiture-de-banane',
+  title: 'Formation',
+  subtitle: 'Confiture de banane',
+  fruit: 'Banane',
+  modules: [
+    { title: 'Sélection et préparation des fruits', duration: '10 min', quiz: selectionPreparationBananeQuiz, content: selectionPreparationBananeContent },
+    { title: "Bonnes pratiques d'hygiène et de fabrication", duration: '12 min', quiz: hygieneQuiz },
+    { title: 'Cuisson et dosage du sucre/pectine', duration: '15 min', quiz: cuissonDosageQuiz },
+    { title: 'Mise en pot et stérilisation', duration: '12 min', quiz: misePotSterilisationQuiz },
+    { title: 'Gestion de la qualité et conservation', duration: '8 min', quiz: qualiteConservationQuiz },
+  ],
+  documents: [],
+  commercialisation: {
+    packagingTitle: 'Bocal en verre 250g',
+    packagingEmoji: '🍯',
+    packagingFeatures: ['Hermétique', 'Réutilisable', 'Longue conservation', 'Image artisanale'],
+    distributionChannels: [
+      { label: 'Vente directe', icon: { ios: 'hand.raised.fill', android: 'handshake', web: 'handshake' } },
+      { label: 'Marchés locaux', icon: { ios: 'basket.fill', android: 'shopping_basket', web: 'shopping-basket' } },
+      { label: 'Boutiques / Épiceries', icon: { ios: 'storefront.fill', android: 'store', web: 'store' } },
+      { label: 'Épiceries fines', icon: { ios: 'star.fill', android: 'star', web: 'star' } },
+      { label: 'Vente en ligne', icon: { ios: 'globe', android: 'language', web: 'globe' } },
+    ],
+  },
+};
 export const formations: Formation[] = [
   {
     slug: 'jus-de-mangue',
@@ -838,5 +1258,16 @@ export const formations: Formation[] = [
       ],
     },
   },
+  ...juiceFormations,
+  confitureDeBananeFormation,
 ];
+
+// Finds a formation matching an identified fruit name (case/accent-insensitive substring match).
+export function getFormationForFruit(name: string): Formation | null {
+  const normalized = name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  return formations.find((f) => normalized.includes(f.fruit.toLowerCase())) ?? null;
+}
 

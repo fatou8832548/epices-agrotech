@@ -1,8 +1,8 @@
+import { ProductImage } from '@/components/product-image';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getProductsForFruit } from '@/constants/fruit-products';
 import { BottomTabInset, Spacing } from '@/constants/theme';
-import { Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -34,11 +34,13 @@ export default function ProductsScreen() {
                   onPress={() => router.push({ pathname: '/home/product-detail', params: { name: product.name } })}
                 >
                   <View style={styles.cardImage}>
-                    {product.photo ? (
-                      <ExpoImage source={product.photo} style={styles.cardPhoto} contentFit="cover" />
-                    ) : (
-                      <SymbolView tintColor="#1b8a2a" name={product.icon} size={40} />
-                    )}
+                    <ProductImage
+                      photo={product.photo}
+                      query={product.searchQuery ?? product.name}
+                      icon={product.icon}
+                      iconSize={40}
+                      style={styles.cardPhoto}
+                    />
                   </View>
                   <View style={styles.cardFooter}>
                     <ThemedText style={styles.cardName}>{product.name}</ThemedText>

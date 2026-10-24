@@ -3,6 +3,7 @@ import { ThemedView } from '@/components/themed-view';
 import { GhostButton } from '@/components/ui/ghost-button';
 import { PrimaryButton } from '@/components/ui/primary-button';
 import { BottomTabInset, Spacing } from '@/constants/theme';
+import { setLastIdentifiedFruit } from '@/utils/last-fruit';
 import { File, UploadType } from 'expo-file-system';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -113,6 +114,7 @@ export default function StartScreen() {
         confidence: r.confidence ?? 0,
         keyInfo: r.keyInfo ?? [],
       });
+      if (r.name) setLastIdentifiedFruit(r.name);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       console.warn('detectProduct failed', message);
